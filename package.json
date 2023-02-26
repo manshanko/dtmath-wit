@@ -1,0 +1,10 @@
+{
+  "name": "dtmath-js",
+  "type": "module",
+  "dependencies": {
+    "@bytecodealliance/jco": "^0.4.1"
+  },
+  "scripts": {
+    "build": "npx jco transpile ./wasm/dtmath.wasm -o ./dist/dtmath-js --name dtmath --tla-compat"
+  }
+}

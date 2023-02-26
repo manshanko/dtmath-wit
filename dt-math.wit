@@ -1,0 +1,217 @@
+default world dt-math {
+    export util:          self.util
+    export dt-core:       self.dt-core
+    export dt-breed:      self.dt-breed
+    export dt-stat-buffs: self.dt-stat-buffs
+    export dt-item:       self.dt-item
+}
+
+interface util {
+    /// LZ4 compress then Base64 encode.
+    to-lz64: func(data: string) -> result<string, string>
+
+    /// Base64 decode then LZ4 decompress.
+    from-lz64: func(base64: string) -> result<string, string>
+}
+
+interface dt-types {
+    // objects
+    type breed = u32
+    type item = u32
+    type stat-buffs = u32
+
+    enum difficulty {
+        sedition,
+        uprising,
+        malice,
+        heresy,
+        damnation,
+    }
+
+    enum armor-type {
+        unarmored,
+        armored,
+        resistant,
+        player,
+        berserker,
+        super-armor,
+        disgustingly-resilient,
+        void-shield,
+        //prop-armor,
+    }
+
+    enum hit-zone {
+        head,
+        torso,
+        upper-tail,
+        lower-tail,
+        tongue,
+        upper-left-arm,
+        lower-left-arm,
+        upper-right-arm,
+        lower-right-arm,
+        upper-left-leg,
+        lower-left-leg,
+        upper-right-leg,
+        lower-right-leg,
+        afro,
+        center-mass,
+        captain-void-shield,
+        corruptor-armor,
+        shield,
+        weakspot,
+        right-shoulderguard,
+        //delayed-gib,
+    }
+
+    enum hit-type {
+        body,
+        weakspot,
+        critical,
+        critical-weakspot,
+    }
+
+    record info {
+        /// Internal name.
+        key: string,
+        /// Localization key for display name.
+        name: option<string>,
+        /// Localization key for description.
+        desc: option<string>,
+    }
+}
+
+interface dt-core {
+    use self.dt-types.{info}
+
+    /// Buff default fields are not included.
+    record buff {
+        key: string,
+        class-name: option<string>,
+        /// `key` of the child buff of this buff.
+        child-buff-template: option<string>,
+        max-stacks: option<s32>,
+    }
+
+    breed-list: func() -> list<info>
+
+    weapon-list: func() -> list<info>
+
+    buff-list: func() -> list<buff>
+
+    /// Get strings embedded in dtmath.
+    string-list: func() -> list<string>
+
+    /// Build id of loaded Darktide.
+    build: func() -> string
+
+    /// Version of loaded Darktide.
+    version: func() -> string
+}
+
+interface dt-breed {
+    use self.dt-types.{breed, difficulty, hit-zone, armor-type}
+
+    new: func(key: string) -> result<breed, string>
+
+    free: func(this: breed)
+
+    name: func(this: breed) -> string
+
+    health: func(this: breed, difficulty: difficulty) -> float64
+
+    armor: func(this: breed, hit-zone: option<hit-zone>) -> armor-type
+}
+
+interface dt-stat-buffs {
+    use self.dt-types.{stat-buffs}
+
+    new: func() -> stat-buffs
+
+    free: func(this: stat-buffs)
+
+    clear: func(this: stat-buffs)
+
+    set: func(this: stat-buffs, key: string, value: float64)
+
+    %list: func(this: stat-buffs) -> list<tuple<string, float64>>
+}
+
+interface dt-item {
+    use self.dt-types.{item, breed, stat-buffs, info, armor-type}
+
+    enum trait-type {
+        blessing,
+        perk,
+    }
+
+    variant target {
+        breed(breed),
+        armor(armor-type),
+    }
+
+    record action {
+        key: string,
+        display-name: string,
+        //sequence: list<string>,
+    }
+
+    record trait-rarity {
+        stat-buffs: option<list<tuple<string, float64>>>,
+        proc-stat-buffs: option<list<tuple<string, float64>>>,
+        //lerped-stat-buffs: option<list<tuple<string, float64>>>,
+        max-stacks: option<s32>,
+    }
+
+    record trait {
+        %type: trait-type,
+        key: string,
+        name: string,
+        rarities: list<trait-rarity>,
+    }
+
+    record action-options {
+        charge-level: option<float64>,
+        distance: option<float64>,
+        special-active: option<bool>,
+    }
+
+    new: func(key: string) -> result<item, string>
+
+    free: func(this: item)
+
+    name: func(this: item) -> string
+
+    /// Currently only returns actions that are attacks supported by dtmath.
+    action-list: func(this: item) -> list<action>
+
+    available-stats: func(this: item) -> option<list<info>>
+
+    /// Ignored if more or less than 5 stats is used.
+    set-stats: func(this: item, stats: option<list<tuple<string, float64>>>)
+
+    get-stats: func(this: item) -> option<list<tuple<string, float64>>>
+
+    trait-list: func(this: item) -> list<trait>
+
+    /// Order is:
+    ///   1. base
+    ///   2. weak
+    ///   3. crit
+    ///   4. crit_weak
+    calculate: func(
+        this: item,
+        action: string,
+        target: target,
+        options: option<action-options>,
+        attacker-stat-buffs: option<stat-buffs>,
+        target-stat-buffs: option<stat-buffs>,
+    ) -> list<list<float64>>
+
+    cleave: func(
+        this: item,
+        action: string,
+        options: option<action-options>,
+        attacker-stat-buffs: option<stat-buffs>,
+    ) -> float64
+}
