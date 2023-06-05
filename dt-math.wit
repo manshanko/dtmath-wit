@@ -167,6 +167,7 @@ interface dt-item {
         %type: trait-type,
         key: string,
         name: string,
+        description: string,
         rarities: list<trait-rarity>,
     }
 
