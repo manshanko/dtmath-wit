@@ -93,11 +93,26 @@ interface dt-core {
         max-stacks: option<s32>,
     }
 
+    enum stat-buff-type {
+        additive-multiplier,
+        max-value,
+        multiplicative-multiplier,
+        value,
+    }
+
+    record stat-buff-meta {
+        key: string,
+        %type: stat-buff-type,
+    }
+
     breed-list: func() -> list<info>
 
     weapon-list: func() -> list<info>
 
     buff-list: func() -> list<buff>
+
+    /// Get type info for each stat buff.
+    stat-buff-meta-list: func() -> list<stat-buff-meta>
 
     /// Get strings embedded in dtmath.
     string-list: func() -> list<string>
