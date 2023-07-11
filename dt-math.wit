@@ -26,6 +26,7 @@ interface dt-types {
         malice,
         heresy,
         damnation,
+        damnation-plus,
     }
 
     enum armor-type {
