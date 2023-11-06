@@ -21,6 +21,7 @@ See JavaScript examples at [`examples`](examples).
 
 ## Wasm Component Runtimes
 
+dtmath-wit currently uses a version of WIT that requires Wasmtime 7.0.0 or older.
 The following runtimes can generate bindings to use wasm components like `dtmath.wasm`.
 
 * Rust - [wasmtime](https://github.com/bytecodealliance/wasmtime) ([crates.io](https://crates.io/crates/wasmtime))
